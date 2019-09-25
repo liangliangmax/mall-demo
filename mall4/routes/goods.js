@@ -61,7 +61,7 @@ router.get('/list', function(req, res, next) {
 
 //添加购物车
 router.post('/addCart',function (req,res,next) {
-    let userId = '100000077';
+    let userId = req.cookies.userId;
 
     let productId = req.body.productId;
 

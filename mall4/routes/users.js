@@ -4,9 +4,6 @@ var router = express.Router();
 let User = require('./../modules/users');
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
 
 //登录
 router.post('/login',function (req,res,next) {
@@ -130,8 +127,10 @@ router.post('/cart/del',function (req,res,next) {
   User.update(
       {userId:userId},
       {$pull:
-            {'cartList':
-                  {'productId':productId}
+            {
+                'cartList':{
+                    'productId':productId
+                }
             }
       },
       function (err,doc) {
@@ -153,9 +152,88 @@ router.post('/cart/del',function (req,res,next) {
       }
       
   );
+});
 
+
+router.post('/cart/edit',function (req,res,next) {
+    let userId= req.cookies.userId;
+
+    let productId = req.body.productId;
+
+    let productNum = req.body.productNum;
+
+    let checked = req.body.checked;
+
+    User.update(
+        {
+            "userId":userId,
+            "cartList.productId":productId
+        },
+        {
+            "cartList.$.productNum":productNum,
+            "cartList.$.checked":checked
+        },
+        function (err,doc) {
+            if(err){
+                res.json({
+                    status:1,
+                    msg:err.message,
+                    result:''
+
+                });
+            }else {
+                res.json({
+                    status:0,
+                    msg:"",
+                    result:''
+
+                });
+            }
+        });
 
 });
 
+
+//选中全部
+router.post('/cart/checkAll',function (req,res,next) {
+    let userId= req.cookies.userId;
+    let checkAll = req.body.checkAll;
+
+    User.findOne({userId:userId},function (err,userDoc) {
+        if(err){
+            res.json({
+                status:1,
+                msg:err.message,
+                result:''
+
+            });
+        }else {
+            if(userDoc){
+                userDoc.cartList.forEach((item)=>{
+                    item.checked = checkAll;
+                });
+
+                userDoc.save(function (err1,doc) {
+                    if(err1){
+                        res.json({
+                            status:1,
+                            msg:err1.message,
+                            result:''
+
+                        });
+                    }else {
+                        res.json({
+                            status:0,
+                            msg:'',
+                            result:''
+
+                        });
+                    }
+                });
+            }
+        }
+
+    });
+});
 
 module.exports = router;
